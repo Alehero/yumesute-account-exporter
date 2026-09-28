@@ -17,8 +17,11 @@ class AccountCapture:
         self.saved = set()
 
     def response(self, flow):
-        # Do not trust a client-supplied Host header to identify the remote server.
-        if flow.request.host.lower() != API_HOST or not flow.response:
+        # Transparent/WireGuard flows retain the destination IP in request.host.
+        # Use the upstream TLS name as well, not just the HTTP Host header.
+        server = getattr(flow, "server_conn", None)
+        server_name = (getattr(server, "sni", None) or "").lower()
+        if API_HOST not in (flow.request.host.lower(), server_name) or not flow.response:
             return
         path = urlsplit(flow.request.url).path
         if path not in ("/api/Account/Authenticate", "/api/data/user"):

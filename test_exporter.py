@@ -51,6 +51,14 @@ def flow(
 
 
 class ExportTests(unittest.TestCase):
+    def test_wireguard_ip_destination_uses_upstream_tls_name(self):
+        with tempfile.TemporaryDirectory() as root:
+            capture = AccountCapture(root, lambda _: None)
+            item = flow('/api/data/user', 'GET', host='192.0.2.10')
+            item.server_conn = SimpleNamespace(sni='lb-api.wds-stellarium.com')
+            capture.response(item)
+            self.assertEqual(len(list(Path(root).glob('*.zip'))), 1)
+
     def test_roundtrip_and_allowlisted_archive(self):
         body = packed(*fixture())
         with tempfile.TemporaryDirectory() as root:
