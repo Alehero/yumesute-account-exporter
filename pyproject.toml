@@ -1,0 +1,9 @@
+[project]
+name = "yumesute-account-exporter"
+version = "0.1.0"
+description = "Local, passive account preservation for Yume no Stellarium"
+requires-python = ">=3.12,<3.14"
+dependencies = ["mitmproxy==12.2.3", "msgpack==1.1.2", "lz4==4.4.5", "qrcode==8.2"]
+
+[tool.uv]
+package = false
