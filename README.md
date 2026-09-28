@@ -1,90 +1,194 @@
-# Yumesute Account Exporter — early preview
+# ユメステ アカウント保存ツール
 
-Save your own **World Dai Star: Yume no Stellarium** account locally while the official service is still reachable. No private server installation, jailbreak, Apple ID password, purchases, or in-game resource spending is required.
+**日本語** | [English](README.en.md)
 
-**Do this before shutdown. Reaching home is not enough: wait for `ACCOUNT SAVED` in the computer terminal.** Keep the resulting ZIP private. This project does not upload it anywhere.
+[ZIPをダウンロード](https://github.com/Alehero/yumesute-account-exporter/archive/refs/heads/main.zip) · [不具合を報告する](https://github.com/Alehero/yumesute-account-exporter/issues)
 
-The exporter preserves the full `/api/data/user` response, including owned actors, posters, upgrades, inventory, and other records returned by the game. It is a snapshot at login, not an ongoing save-file synchronizer. It does not include game media, every separate API's data, or a guarantee that every feature can already be restored by a private server.
+『ワールドダイスター 夢のステラリウム』の**自分のアカウントデータを、手元のパソコンに保存するための非公式ツール**です。所持アクター・ポスターや育成状況など、ログイン時に公式サーバーから受け取るデータをZIPファイルに保存します。
 
-## What you need
+**公式サーバーにログインできる間に保存してください。** ホーム画面が表示されただけでは保存完了ではありません。パソコンに **`ACCOUNT SAVED`** と表示され、ZIPファイルが作成されたことを確認してください。
 
-- An iPad/iPhone with the working game installed and your account still accessible.
-- A Mac or Windows PC and the device on the **same Wi-Fi**. USB alone does not capture the traffic; no cable is required.
-- The official [WireGuard app](https://www.wireguard.com/install/) on the device.
-- [uv](https://docs.astral.sh/uv/getting-started/installation/) on the computer. It installs the required Python/runtime dependencies automatically on first run.
+保存先は自分のパソコンです。アカウントデータの自動アップロード機能はありません。課金、ゲーム内アイテムの消費、脱獄、Apple IDのパスワード入力は不要です。
 
-Mac with Homebrew: `brew install uv`. Windows: `winget install --id=astral-sh.uv -e`, then open a new terminal. If you do not use Homebrew, follow uv's official installation page.
+## できること・できないこと
 
-**Verification status:** Mac server startup, certificate serving, synthetic export tests, and export of a real captured iPad account have been checked. This standalone setup still needs a fresh iPad end-to-end test. Windows launch instructions are provided but have not yet been device-tested. The underlying WireGuard capture method was already used successfully for the original preservation work.
+- ログイン時に取得するアカウント情報を、そのまま保存します。所持アクター、ポスター、育成状況、アイテムなど、取得したデータに含まれる情報が対象です。
+- 将来の対応サーバーへの取り込みに使える形式で保存します。**このツール単体でゲームをオフライン化したり、アカウントを復元したりすることはできません。** 全機能の復元を保証するものでもありません。
+- 楽曲・MV・ボイスなどのゲーム素材や、別のAPIからのみ取得する情報は保存対象ではありません。
+- 保存は取得時点の状態です。以降のプレイ内容が常に自動で反映されるわけではありません。
+- サーバー停止後に、新たにアカウント情報を取得することはできません。スクリーンショットや端末内の素材キャッシュから復元するツールではありません。
 
-## Start
+## 動作確認状況
 
-1. Download this repository with **Code → Download ZIP**, and extract it to a folder you own.
-2. On Mac, open Terminal, type `cd `, drag the extracted folder into Terminal, press Enter, then run:
+| 環境 | 状況 |
+| --- | --- |
+| Mac → iPad | **実機で保存完了まで確認済み**（2026年9月28日） |
+| 確認に使用した環境 | macOS 26.2 / M1 iPad Pro / iPadOS 26.6.1 |
+| Windows → iPad | 起動手順あり。**実機未確認** |
+| iPhone | **実機未確認** |
 
-   ```sh
-   uv run --locked --python 3.12 python launcher.py
-   ```
+実機テストでは、公式サーバーへのログインからZIPの作成、整合性検証、ログイン情報との紐付けまで確認しています。自動テスト7件も通過しています。ただし、すべての端末・ネットワークでの動作を保証するものではありません。現在はコミュニティ向けの初期公開版です。
 
-   `Start-Mac.command` is an alternative launcher if executable permissions are retained. If macOS blocks the downloaded launcher, use the Terminal command above after reviewing the source.
+## 用意するもの
 
-   On Windows, double-click `Start-Windows.cmd` after extracting. Keep its terminal window open.
-3. A **local setup page** opens with a private QR code. Follow its instructions:
-   - Set the iPad's Wi-Fi HTTP Proxy to **Off**.
-   - Import the QR code in WireGuard and enable the tunnel.
-   - Open the certificate address shown on the page in iPad Safari.
-   - Install the downloaded profile under **Settings → General → VPN & Device Management**.
-   - Enable its full trust under **Settings → General → About → Certificate Trust Settings**. Installing the profile alone is insufficient.
-4. Fully close the game, launch it again, and reach home.
-5. Check the computer terminal for **ACCOUNT SAVED**, actor/poster counts, and a ZIP filename. The file is inside **`exports/`** in this folder. If no success message appears, do not assume your account is saved.
-6. Copy the ZIP to a second safe location. After further gameplay, fully close and reopen the game to save a new snapshot. Existing snapshots are never overwritten.
-7. Turn WireGuard **off**, press **Control+C** in the terminal, and remove the export certificate profile and WireGuard tunnel when finished. Your ordinary connection should work again.
+1. ユメステがインストールされ、保存したいアカウントでログインできるiPad／iPhone。
+2. MacまたはWindowsパソコン。**端末とパソコンを同じWi-Fiに接続してください。** USBケーブルは不要です。USB接続だけでは通信を取得できません。
+3. 端末にインストールする公式の [WireGuardアプリ](https://www.wireguard.com/install/)。
+4. パソコンにインストールする [uv](https://docs.astral.sh/uv/getting-started/installation/)。初回起動時に、必要なPythonとライブラリを自動で準備します。
 
-Do not run this while routed to a private game server: the intended source is the official service. Don't uninstall the game, clear its data, or switch accounts just to use the exporter.
+Wi-Fiの「ゲストネットワーク」など、端末同士の通信が禁止されている環境では接続できないことがあります。インターネットへのポート開放は不要です。
 
-## What gets saved
+## 1. パソコンでツールを起動する
 
-Each ZIP contains:
+まず [ZIPをダウンロード](https://github.com/Alehero/yumesute-account-exporter/archive/refs/heads/main.zip) し、**展開・解凍**してください。ZIPの中から直接起動しないでください。共有フォルダーではなく、自分のユーザーフォルダー内に置くことをおすすめします。
 
-- `user-data.response.bin`: the exact decoded HTTP response body, preserving the game's MessagePack types and timestamps.
-- `manifest.json`: versioned format, account ID, UTC capture time, record counts, and SHA-256 checksum.
-- `account-bridge.json`, when login was observed: account ID plus a SHA-256 digest of the game's installation login token. This lets a future compatible local server recognize the same installation without storing the raw token.
+### Mac
 
-**The ZIP contains private account data and is not encrypted.** Do not attach it to public GitHub issues, social posts, or bug reports. A token hash is still private linking information. On Windows, files inherit your user folder's permissions; use a private user-owned folder.
-
-No raw login tokens, session tokens, request headers, packet logs, WireGuard keys, or certificate signing keys are included in exports. No telemetry or automatic uploads are implemented. Login/session hashes are correlated in memory; a different account cannot accidentally inherit the previous account's bridge.
-
-The `private/` folder contains the local tunnel keys, setup QR, and certificate authority. Do not share it. Only the public certificate is downloadable from the small LAN certificate server. There is no file browser or export-download endpoint.
-
-## Verify an export later, even offline
-
-From this folder, after dependencies are installed:
+Homebrewが入っている場合は、ターミナルで次のコマンドを実行してuvをインストールします。
 
 ```sh
-uv run --locked --python 3.12 python exporter.py /path/to/your-account.zip
+brew install uv
 ```
 
-Windows paths can be quoted, for example `"C:\Users\You\Documents\your-account.zip"`.
+Homebrewを使っていない場合は、[uvの公式インストール手順](https://docs.astral.sh/uv/getting-started/installation/)を参照してください。
 
-A successful checksum/structure check means the snapshot is intact. It does not prove all game features can be restored. Keep the original ZIP until an importer is released. See [FORMAT.md](FORMAT.md) for implementers.
+次に、ターミナルで `cd `（末尾に半角スペース）と入力し、展開したフォルダーをそのウィンドウへドラッグして、Enterを押します。その後、次を実行します。
 
-## Troubleshooting
+```sh
+uv run --locked --python 3.12 python launcher.py
+```
 
-- **Wrong computer address:** find your Wi-Fi IPv4 address in OS network settings, then run `uv run --locked --python 3.12 python launcher.py --host 192.168.1.23` (replace the example). Re-import the new QR/config after changing address or ports.
-- **No certificate download:** check that both devices are on the same network, the computer is awake, the tunnel is on, and guest-network isolation is off. Allow Python on the **private/home** network when the firewall prompts. The defaults are **UDP 51821** for WireGuard and **TCP 8765** for the public certificate. Do not expose these ports to the internet or disable the whole firewall.
-- **Port conflict:** use `--wg-port 51822 --cert-port 8766`, then use the updated setup page.
-- **Game connection fails:** verify full certificate trust, HTTP Proxy Off, and the export tunnel On. Other VPNs can conflict. Stop the tunnel to restore the ordinary connection.
-- **No ACCOUNT SAVED:** fully close/reopen the game. The app may still be using a previous connection. IPv6/network-specific routing can also bypass capture; never infer success from home loading. This preview does not claim every network works.
-- **Saved without login matching:** the account inventory is preserved. Fully close/reopen once with capture running to observe login; a new export with its bridge will be written when available. Older ZIPs remain valid inventory backups.
-- **Export validation error:** the official response may be a maintenance/fault response or a changed format. The exporter refuses to label these as successful backups. Do not post account files to diagnose it; first report only OS, client version, and the generic error class.
-- **Official service already unavailable:** this tool cannot fetch a new account snapshot from an offline server. It cannot recover an account from screenshots or the app's cached media.
+実行権限が保持されている場合は `Start-Mac.command` からも起動できます。ダウンロードした起動ファイルを開けない場合は、内容を確認のうえ、上記のターミナル手順を使ってください。
 
-## Development
+### Windows（実機未確認）
+
+PowerShellまたはターミナルで次を実行します。
+
+```powershell
+winget install --id=astral-sh.uv -e
+```
+
+インストール後はターミナルを開き直してください。展開したフォルダーの **`Start-Windows.cmd`** をダブルクリックすると起動します。
+
+### 起動後
+
+設定用のページがブラウザーで開きます。開かない場合は、ツールのフォルダー内にある **`private/setup.html`** をFinder／エクスプローラーから開いてください。ページは英語ですが、以下の日本語手順で同じ設定を進められます。
+
+**ターミナルのウィンドウは閉じずに、そのままにしてください。** 設定ページのQRコードには接続用の秘密鍵が含まれます。他人に見せたり、SNSに投稿したりしないでください。
+
+## 2. iPad／iPhoneを接続する
+
+### WireGuardの設定
+
+1. パソコンと同じWi-Fiに接続します。
+2. 「設定」→「Wi-Fi」→接続中のネットワークの詳細で、**「HTTPプロキシ」／「プロキシを構成」をオフ**にします。
+3. 別のVPNが有効なら、一度オフにします。
+4. WireGuardアプリを開き、トンネルの追加から **QRコードを読み取る方法**を選びます。
+5. パソコンの設定ページにあるQRコードを読み取り、`Yumesute Export` などの名前を付けます。VPN構成の追加を求められたら内容を確認して許可し、トンネルをオンにします。
+
+### 証明書の設定
+
+1. 端末のSafariで、パソコンの設定ページに表示された **`http://…/cert.cer`** のアドレスを入力します。`https://` に変更しないでください。
+2. 証明書のプロファイルをダウンロードします。
+3. 「設定」→「一般」→「VPNとデバイス管理」から、今回ダウンロードした **mitmproxyのプロファイル**をインストールします。端末のパスコードを求められる場合があります。Apple IDのパスワードをツールに入力する必要はありません。
+4. 「設定」→「一般」→「情報」→「証明書信頼設定」で、今回のmitmproxy証明書の**完全な信頼を有効**にします。
+
+**プロファイルのインストールだけでは完了しません。完全な信頼の設定も必要です。** 表示名はOSのバージョンにより多少異なります。[Apple公式の説明](https://support.apple.com/ja-jp/102390)も参照してください。
+
+この設定は、パソコン上のツールがゲーム通信を読み取るためのものです。配布されている他人の証明書や秘密鍵ではなく、**自分のパソコンで生成したもの**を使用してください。
+
+## 3. ログインして保存を確認する
+
+1. ユメステを**完全に終了**してから起動し直し、ホーム画面まで進みます。ゲームの削除やデータの初期化はしないでください。
+2. パソコンのターミナルを確認します。次のような表示が出れば、保存と検証が完了しています（数字は例です）。
+
+   ```text
+   ACCOUNT SAVED: 10 actors, 5 posters; 100 records.
+   ```
+
+   `actors` はアクター数、`posters` はポスター数、`records` は取得したデータのレコード数です。
+3. ツールの **`exports` フォルダー**にある **`yumesute-… .zip`** を確認します。ZIPは暗号化されていません。自分だけがアクセスできる別の場所にもコピーして保管してください。
+4. 保存後にさらにプレイした場合は、ツールを動かしたままゲームを完全終了・再起動して、新しい状態を保存してください。以前のZIPは上書きされません。
+
+`Inventory backup is valid...` と表示された場合は、データ自体は保存できていますが、ログインとの紐付けがありません。ツールを起動したまま、ゲームをもう一度完全終了・再起動すると、紐付け付きの新しいZIPを作成できる場合があります。
+
+**公式サーバーからのデータを保存してください。** プライベートサーバーへ接続する設定がある場合は、その接続を使わないでください。
+
+## 4. 保存が終わったら
+
+1. 端末でWireGuardのトンネルを**オフ**にします。
+2. パソコンのターミナルで **Control+C** を押してツールを停止します。
+3. 今回追加した証明書プロファイルとWireGuardトンネルを、不要になったら削除します。他の用途の設定は削除しないでください。
+4. 保存したZIPは、そのまま大切に保管してください。
+
+## 保存ファイルとプライバシー
+
+ZIPには次のファイルが含まれます。
+
+| ファイル | 内容 |
+| --- | --- |
+| `user-data.response.bin` | 取得したアカウントデータ。型や日時を保持した元のレスポンス |
+| `manifest.json` | 形式のバージョン、アカウントID、取得日時、件数、整合性確認用のハッシュ |
+| `account-bridge.json`（取得できた場合） | アカウントIDとログイントークンのSHA-256ハッシュ。将来、対応するローカルサーバーで同じインストールを識別するための情報 |
+
+生のログイントークン、セッショントークン、通信ヘッダー、パケットログ、証明書の秘密鍵、WireGuardの秘密鍵はZIPに含めません。ただし、**ZIP自体は非公開のアカウント情報です。ハッシュ化された紐付け情報も公開しないでください。**
+
+- **アカウントZIP、`private` フォルダー、設定用QRコードをGitHubのIssueやSNSへ投稿しないでください。**
+- `private` フォルダーには自分専用の証明書・接続用の秘密鍵が入っています。ツールのフォルダー全体を他人に配らないでください。紹介するときは、このリポジトリへのリンクを使ってください。
+- アカウントデータの提供・寄付は利用条件ではありません。ツールからの自動送信やテレメトリーはありません。
+- ZIPは暗号化されていません。特にWindowsでは保存先フォルダーのアクセス権を引き継ぐため、共有フォルダーを避けてください。
+
+## 困ったとき
+
+| 症状 | 確認すること |
+| --- | --- |
+| 設定ページが開かない | Finder／エクスプローラーで `private/setup.html` を開く |
+| 証明書をダウンロードできない | 同じWi-Fiか、パソコンがスリープしていないか、トンネルがオンか確認。ゲストWi-Fiの端末間通信制限にも注意 |
+| ゲームに接続できない | 証明書の完全な信頼、HTTPプロキシがオフ、他のVPNがオフか確認。まずWireGuardをオフにすれば通常の接続に戻せる |
+| ホームに着いても `ACCOUNT SAVED` が出ない | ゲームを完全終了・再起動。ホーム表示だけで成功と判断しない。IPv6などネットワーク側の経路が原因になる場合もある |
+| 検証エラーが出る | メンテナンス応答やデータ形式の違いなどの可能性あり。成功表示が出ていなければ、保存完了とは判断しない |
+| 公式サーバーが停止している | このツールでは新しいアカウントデータを取得できない |
+
+ファイアウォールの確認が出た場合は、自宅などの**プライベートネットワーク**でPythonの通信を許可してください。標準ポートはWireGuard用の **UDP 51821** と証明書ダウンロード用の **TCP 8765** です。ルーターでインターネットにポートを公開したり、ファイアウォール全体を無効にしたりする必要はありません。
+
+パソコンのIPアドレスが自動判定と異なる場合は、OSのWi-Fi設定でIPv4アドレスを確認して指定できます。次のアドレスは例です。
+
+```sh
+uv run --locked --python 3.12 python launcher.py --host 192.168.1.23
+```
+
+ポートが使用中の場合は `--wg-port 51822 --cert-port 8766` を追加してください。アドレスやポートを変更したら、更新されたQRコードでトンネルを登録し直してください。
+
+## 後からZIPを検証する
+
+必要なライブラリをインストール済みであれば、保存データの検証自体に公式サーバーへの接続は不要です。ツールのフォルダーで実行します。
+
+```sh
+uv run --locked --python 3.12 python exporter.py "/保存先/アカウント.zip"
+```
+
+Windowsの例：
+
+```powershell
+uv run --locked --python 3.12 python exporter.py "C:\Users\YourName\Documents\account.zip"
+```
+
+成功すると `Verified:` と件数が表示されます。これはファイルの整合性・構造の確認であり、全機能の復元を保証するものではありません。対応する取り込みツールが公開されるまで、元のZIPを保管してください。
+
+## 不具合の報告・開発者向け情報
+
+[Issues](https://github.com/Alehero/yumesute-account-exporter/issues)では日本語・英語のどちらでも報告できます。パソコンと端末のOS、止まった手順、`ACCOUNT SAVED` の有無、秘密情報を含まないエラーメッセージを記載してください。アカウントZIPやQRコードの添付は不要です。
+
+- [更新履歴](CHANGELOG.md)
+- [保存形式の仕様（英語）](FORMAT.md)
+- [依存ライブラリ・参考プロジェクト](THIRD_PARTY.md)
+
+自動テスト：
 
 ```sh
 uv run --locked --python 3.12 python -m unittest discover -v
 ```
 
-The capture is passive: it does not alter, replay, or create game API calls. Only the game's API host is selected for TLS interception, and only authentication correlation plus `/api/data/user` are processed by the exporter. Other tunnel traffic is forwarded without being exported. Each installation generates its own keys.
+本ツールは通常のゲーム通信を読み取って保存するもので、ゲームAPIの改変・再送・自動操作は行いません。実行中はVPN経由で端末のIPv4通信を中継しますが、TLS復号の対象はゲームのAPIホストに限定し、保存処理の対象も認証の紐付けと `/api/data/user` に限定しています。
 
-Built using [mitmproxy](https://docs.mitmproxy.org/stable/concepts/modes/#wireguard), MessagePack, LZ4, and qrcode. See [Apple's certificate-trust instructions](https://support.apple.com/102390). This is an unofficial community preservation tool, not affiliated with the game's operators. No official game assets or other players' accounts are distributed here.
+ゲーム運営・権利者とは関係のない非公式の保存プロジェクトです。公式クライアント、ゲーム素材、他のプレイヤーのアカウントデータは配布していません。
